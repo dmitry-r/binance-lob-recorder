@@ -147,8 +147,10 @@ class DepthCache(object):
         orders['symbol'] = self.symbol
         logger.debug(f'Orders in current price limit: {len(orders)} ')
 
-        orders_list = [x + [datetime.fromtimestamp(self.timestamp / 1000), self.last_updated_id] for x in
-                       list(map(list, orders.itertuples(index=False)))]
+        orders_list = [
+            x + [datetime.fromtimestamp(self.timestamp / 1000), self.last_updated_id]
+            for x in list(map(list, orders.itertuples(index=False)))
+        ]
 
         return orders_list
 
@@ -166,11 +168,18 @@ class MultiplexDepthCacheManager(object):
     Connect to multiple depth streams with one ws connection
 
     """
+
     _default_refresh = 60 * 30  # 30 minutes
 
-    def __init__(self, client, loop, symbols,
-                 coro=None, coro_throttle_count=0,
-                 refresh_interval=_default_refresh):
+    def __init__(
+        self,
+        client,
+        loop,
+        symbols,
+        coro=None,
+        coro_throttle_count=0,
+        refresh_interval=_default_refresh,
+    ):
         """
         :param client: Binance API client
         :type client: binance.Client
@@ -191,7 +200,9 @@ class MultiplexDepthCacheManager(object):
         self._symbols = symbols
         self._coro = coro
         self._coro_throttle_count = coro_throttle_count
-        self._depth_cache = {symbol: DepthCache(client, symbol) for symbol in self._symbols}
+        self._depth_cache = {
+            symbol: DepthCache(client, symbol) for symbol in self._symbols
+        }
         self._depth_message_buffer = []
         self._bm = None
         self._refresh_interval = refresh_interval
@@ -231,7 +242,7 @@ class MultiplexDepthCacheManager(object):
         self._bm = BinanceSocketManager(self._client, self._loop)
 
         # ['ethbtc@depth', 'xrpbtc@depth',]
-        streams = [f"{s.lower()}@depth" for s in self._symbols]
+        streams = [f'{s.lower()}@depth' for s in self._symbols]
         await self._bm.start_multiplex_socket(streams, self._handle_depth_event)
 
         # wait for some socket responses
@@ -267,7 +278,11 @@ class MultiplexDepthCacheManager(object):
             return
 
         # Check throttle counter and call the callback with the updated depth cache
-        if self._coro and self._depth_cache[msg['s']].throttle_counter == self._coro_throttle_count:
+        if (
+            self._coro
+            and self._depth_cache[msg['s']].throttle_counter
+            == self._coro_throttle_count
+        ):
             await self._coro(self._depth_cache[msg['s']])
             self._depth_cache[msg['s']].throttle_counter = 0
         self._depth_cache[msg['s']].throttle_counter += 1

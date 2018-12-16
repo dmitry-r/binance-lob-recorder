@@ -1,9 +1,8 @@
 import asyncio
 
 from recorder.configuration import load_config
-from recorder.recorder import LOBRecorder
-
 from recorder.db import create_table
+from recorder.recorder import LOBRecorder
 
 if __name__ == '__main__':
 

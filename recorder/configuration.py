@@ -8,4 +8,5 @@ def load_config(config_path='config.json'):
     except FileNotFoundError:
         raise FileNotFoundError(
             f'Config file "{config_path}" not found!'
-            'Please create a config file or check whether it exists.')
+            'Please create a config file or check whether it exists.'
+        )
