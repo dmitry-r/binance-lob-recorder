@@ -1,0 +1,17 @@
+version: '3'
+services:
+  app:
+    build: .
+    command: python main.py
+
+  db:
+    image: yandex/clickhouse-server
+    volumes:
+      - ./exchange-data/clickhouse-data:/var/lib/clickhouse
+    ports:
+      - 8123:8123
+      - 9000:9000
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144

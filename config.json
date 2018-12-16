@@ -17,7 +17,7 @@
     ]
   },
   "db": {
-    "host": "localhost",
+    "host": "db",
     "port": 9000,
     "throttle_count": 5,
     "price_limit": 0.1
