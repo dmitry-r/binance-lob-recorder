@@ -1,0 +1,25 @@
+{
+  "exchange": {
+    "api_key": "",
+    "api_secret": "",
+    "pair_blacklist": [
+      "ETHBTC",
+      "LTCBTC",
+      "XRPBTC",
+      "XLMBTC",
+      "BNBBTC",
+      "XMRBTC",
+      "ZECBTC",
+      "DASHBTC",
+      "NEOBTC",
+      "TUSDBTC",
+      "PAXBTC"
+    ]
+  },
+  "db": {
+    "host": "localhost",
+    "port": 9000,
+    "throttle_count": 5,
+    "price_limit": 0.1
+  }
+}

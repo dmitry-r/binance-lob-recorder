@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+aioch = "*"
+loguru = "*"
+pandas = "*"
+python-binance = {editable = true,ref = "feature/asyncio",git = "https://github.com/dmitry-r/python-binance"}
+
+[dev-packages]
+aioresponses = "*"
+pytest = "*"
+pytest-aiohttp = "*"
+pytest-asyncio = "*"
+pytest-cov = "*"
+
+[requires]
+python_version = "3.7.1"
