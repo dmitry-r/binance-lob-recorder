@@ -1,11 +1,12 @@
 from time import sleep
+from typing import Dict, Any
 
 from clickhouse_driver import Client
 from clickhouse_driver.errors import NetworkError
 from loguru import logger
 
 
-def create_table(config):
+def create_table(config: Dict[str, Any]) -> None:
     while True:
         try:
             client = Client(config['db']['host'], config['db']['port'])

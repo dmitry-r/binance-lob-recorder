@@ -1,10 +1,11 @@
 import asyncio
 import time
 from datetime import datetime
+from operator import itemgetter
+from typing import Callable, Dict, List, Union, Optional, Any
 
 import pandas as pd
-from operator import itemgetter
-
+from binance.client_async import AsyncClient
 from binance.websockets_async import BinanceSocketManager
 from loguru import logger
 
@@ -14,7 +15,7 @@ class DepthCache(object):
 
     """
 
-    def __init__(self, client, symbol):
+    def __init__(self, client: AsyncClient, symbol: str) -> None:
         self._client = client
         self.symbol = symbol
         self._updating = False
@@ -24,7 +25,7 @@ class DepthCache(object):
         self._asks = {}
         self.throttle_counter = 0
 
-    async def init_from_rest(self):
+    async def init_from_rest(self) -> None:
         self.last_updated_id = None
         self._updating = True
 
@@ -41,7 +42,7 @@ class DepthCache(object):
         self.last_updated_id = res['lastUpdateId']
         self.timestamp = datetime.timestamp(datetime.now())
 
-    async def update(self, msg):
+    async def update(self, msg: Dict[str, Any]) -> bool:
         """Update cache using websocket diff depth message
         https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly
 
@@ -70,7 +71,7 @@ class DepthCache(object):
         self.timestamp = msg['E']
         return True
 
-    def add_bid(self, bid):
+    def add_bid(self, bid: List[str]) -> None:
         """Add a bid to the cache
 
         :param bid:
@@ -80,7 +81,7 @@ class DepthCache(object):
         if bid[1] == "0.00000000":
             del self._bids[bid[0]]
 
-    def add_ask(self, ask):
+    def add_ask(self, ask: List[str]) -> None:
         """Add an ask to the cache
 
         :param ask:
@@ -90,7 +91,7 @@ class DepthCache(object):
         if ask[1] == "0.00000000":
             del self._asks[ask[0]]
 
-    def get_bids(self):
+    def get_bids(self) -> List[List[float]]:
         """Get the current bids
 
         :return: list of bids with price and quantity as floats
@@ -107,7 +108,7 @@ class DepthCache(object):
         """
         return DepthCache.sort_depth(self._bids, reverse=True)
 
-    def get_asks(self):
+    def get_asks(self) -> List[List[float]]:
         """Get the current asks
 
         :return: list of asks with price and quantity as floats
@@ -124,7 +125,9 @@ class DepthCache(object):
         """
         return DepthCache.sort_depth(self._asks, reverse=False)
 
-    def get_orders(self, price_limit=1):
+    def get_orders(
+        self, price_limit: float = 1
+    ) -> List[List[Union[float, int, str, datetime]]]:
         """Get LOB cache limited by percent current price
 
         :param price_limit
@@ -155,7 +158,7 @@ class DepthCache(object):
         return orders_list
 
     @staticmethod
-    def sort_depth(vals, reverse=False):
+    def sort_depth(vals: Dict[str, float], reverse: bool = False) -> List[List[float]]:
         """Sort bids or asks by price
         """
         lst = [[float(price), quantity] for price, quantity in vals.items()]
@@ -173,13 +176,13 @@ class MultiplexDepthCacheManager(object):
 
     def __init__(
         self,
-        client,
-        loop,
-        symbols,
-        coro=None,
-        coro_throttle_count=0,
-        refresh_interval=_default_refresh,
-    ):
+        client: AsyncClient,
+        loop: asyncio.AbstractEventLoop,
+        symbols: List[str],
+        coro: Optional[Callable] = None,
+        coro_throttle_count: int = 0,
+        refresh_interval: int = _default_refresh,
+    ) -> None:
         """
         :param client: Binance API client
         :type client: binance.Client
@@ -208,12 +211,12 @@ class MultiplexDepthCacheManager(object):
         self._refresh_interval = refresh_interval
         self._refresh_time = None
 
-    async def connect(self):
+    async def connect(self) -> None:
         await self._start_socket()
 
         await self._init_cache()
 
-    async def _init_cache(self):
+    async def _init_cache(self) -> None:
         """Initialise the depth cache calling REST endpoint
 
         :return: None
@@ -234,7 +237,7 @@ class MultiplexDepthCacheManager(object):
         # clear the depth buffer
         del self._depth_message_buffer
 
-    async def _start_socket(self):
+    async def _start_socket(self) -> None:
         """Start the depth cache socket
 
         :return: None
@@ -249,7 +252,7 @@ class MultiplexDepthCacheManager(object):
         while not len(self._depth_message_buffer):
             await asyncio.sleep(1)
 
-    async def _handle_depth_event(self, msg):
+    async def _handle_depth_event(self, msg: Dict[str, Union[str, Any]]) -> None:
         """Handle a depth event
 
         :param msg:
@@ -266,7 +269,7 @@ class MultiplexDepthCacheManager(object):
         else:
             await self._process_depth_message(msg['data'])
 
-    async def _process_depth_message(self, msg):
+    async def _process_depth_message(self, msg: Dict[str, Any]) -> None:
         """Process a depth event message.
 
         :param msg: Depth event message.
@@ -291,14 +294,14 @@ class MultiplexDepthCacheManager(object):
         if self._refresh_interval and int(time.time()) > self._refresh_time:
             await self._init_cache()
 
-    def get_depth_cache(self):
+    def get_depth_cache(self) -> Dict[str, DepthCache]:
         """Get the current depth cache
 
         :return: DepthCache object
         """
         return self._depth_cache
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the open socket for this manager
 
         :return: None

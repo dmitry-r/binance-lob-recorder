@@ -1,21 +1,24 @@
+import asyncio
 import traceback
+from typing import Dict, List, Any
 
 from aioch import Client as CHClient
 from binance.client_async import AsyncClient as BClient
 from loguru import logger
 
+from recorder.depth_cache import DepthCache
 from recorder.depth_cache import MultiplexDepthCacheManager
 
 
 class LOBRecorder:
-    def __init__(self, loop, config):
+    def __init__(self, loop: asyncio.AbstractEventLoop, config: Dict[str, Any]) -> None:
         self._loop = loop
         self.config = config
         self.client = BClient(
             self.config['exchange']['api_key'], self.config['exchange']['api_secret']
         )
 
-    async def run(self):
+    async def run(self) -> None:
         symbols = await self.get_symbols()
         logger.info(f'Watching symbols: {symbols}')
         mdcm = MultiplexDepthCacheManager(
@@ -28,7 +31,7 @@ class LOBRecorder:
         logger.info('Connecting to Binance ws endpoint')
         await mdcm.connect()
 
-    async def get_symbols(self):
+    async def get_symbols(self) -> List[str]:
         response = await self.client.get_exchange_info()
         symbols = [
             s['symbol']
@@ -38,7 +41,7 @@ class LOBRecorder:
         ]
         return symbols
 
-    async def process_depth(self, depth_cache):
+    async def process_depth(self, depth_cache: DepthCache) -> None:
         """
         Websocket event callback coroutine
         :param depth_cache:
