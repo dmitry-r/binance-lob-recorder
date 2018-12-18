@@ -11,7 +11,6 @@ if __name__ == '__main__':
     create_table(config)
 
     loop = asyncio.get_event_loop()
-    loop.set_debug(True)
 
     recorder = LOBRecorder(loop=loop, config=config)
 
